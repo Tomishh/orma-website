@@ -1,0 +1,87 @@
+services:
+  postgres:
+    image: postgres:18.6-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
+    volumes:
+      - db_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - strapi
+    ports:
+      - "127.0.0.1:5432:5432"  # Local access only, never exposed publicly
+
+  strapi:
+    container_name: strapi
+    build: .
+    image: strapi:latest
+    restart: unless-stopped
+    env_file: ./strapi-app/.env  # All variables from .env are injected into the container
+    volumes:
+      - ./strapi-app/config:/opt/app/config
+      - ./strapi-app/src:/opt/app/src
+      - ./strapi-app/package.json:/opt/package.json
+      - ./strapi-app/package-lock.json:/opt/package-lock.json
+      - ./strapi-app/.env:/opt/app/.env  # Needed because Strapi uses dotenv to read .env in development
+      - ./strapi-app/public/uploads:/opt/app/public/uploads
+    ports:
+      - "127.0.0.1:1337:1337"  # Public access goes through apache (strapi.tomish.fr)
+    networks:
+      - strapi
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  astro:
+    container_name: astro
+    build: ./astro
+    image: orma-astro:latest
+    restart: unless-stopped
+    environment:
+      STRAPI_URL: http://strapi:1337  # Internal URL, resolved on the docker network
+      STRAPI_TOKEN: ${STRAPI_TOKEN:-}
+      HOST: 0.0.0.0
+      PORT: 4321
+    ports:
+      - "127.0.0.1:4321:4321"  # Public access goes through apache (orma.tomish.fr)
+    networks:
+      - strapi
+    depends_on:
+      - strapi
+
+  apache:
+    container_name: apache
+    image: httpd:2.4-alpine
+    restart: unless-stopped
+    # mod_md needs a graceful restart to activate new/renewed certificates: do one daily
+    command: ["sh", "-c", "(while sleep 86400; do httpd -k graceful; done) & exec httpd-foreground"]
+    environment:
+      ACME_EMAIL: ${ACME_EMAIL:?ACME_EMAIL must be set in .env (Let's Encrypt contact)}
+      ACME_CA: ${ACME_CA:-https://acme-v02.api.letsencrypt.org/directory}
+    volumes:
+      - ./apache/httpd.conf:/usr/local/apache2/conf/httpd.conf:ro
+      - apache_md:/usr/local/apache2/md  # Let's Encrypt account and certificates
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - strapi
+    depends_on:
+      - astro
+      - strapi
+
+volumes:
+  db_data:
+  apache_md:
+
+networks:
+  strapi:
+    name: strapi
+    driver: bridge

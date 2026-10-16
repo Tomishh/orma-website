@@ -1,0 +1,21 @@
+---
+// HTML fragment of work cards, fetched by the "Afficher plus" button.
+import WorkCard from '../../components/WorkCard.astro';
+import { getArticles } from '../../lib/strapi';
+
+export const partial = true;
+
+const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
+const start = clamp(Number(Astro.url.searchParams.get('start')) || 0, 0, 10_000);
+const limit = clamp(Number(Astro.url.searchParams.get('limit')) || 9, 1, 18);
+
+const { articles } = await getArticles({ start, limit });
+---
+
+{
+  articles.map((article) => (
+    <li>
+      <WorkCard article={article} />
+    </li>
+  ))
+}

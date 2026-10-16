@@ -1,0 +1,46 @@
+---
+import Base from '../layouts/Base.astro';
+import TeamCard from '../components/TeamCard.astro';
+import { getTeamMembers } from '../lib/strapi';
+
+const members = await getTeamMembers();
+---
+
+<Base title="Notre équipe" description="Les artisans ébénistes et agenceurs d'Orma agencement.">
+  <section class="section team-page">
+    <div class="container">
+      <a class="link-back" href="/#equipes">← Retour</a>
+      <p class="eyebrow">Les artisans</p>
+      <h1 class="section-title">Notre équipe</h1>
+
+      {
+        members.length > 0 ? (
+          <ul class="team-grid">
+            {members.map((member) => (
+              <li>
+                <TeamCard member={member} showBio />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p class="empty">La présentation de notre équipe arrive prochainement.</p>
+        )
+      }
+    </div>
+  </section>
+</Base>
+
+<style>
+  .team-page {
+    padding-top: clamp(7rem, 14vw, 9rem);
+  }
+
+  .team-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: 3.5rem clamp(1.5rem, 3vw, 2.5rem);
+    margin: clamp(3rem, 6vw, 4.5rem) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+</style>

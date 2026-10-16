@@ -1,0 +1,130 @@
+---
+import TeamCard from './TeamCard.astro';
+import type { TeamMember } from '../lib/strapi';
+
+interface Props {
+  members: TeamMember[];
+}
+
+const { members } = Astro.props;
+---
+
+<section id="equipes" class="section team">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">Les artisans</p>
+        <h2 class="section-title">Nos équipes</h2>
+      </div>
+      {
+        members.length > 0 && (
+          <div class="carousel-controls">
+            <button class="carousel-btn" type="button" data-carousel-prev aria-label="Membres précédents">
+              ←
+            </button>
+            <button class="carousel-btn" type="button" data-carousel-next aria-label="Membres suivants">
+              →
+            </button>
+          </div>
+        )
+      }
+    </div>
+
+    {
+      members.length > 0 ? (
+        <>
+          <ul class="carousel" data-carousel tabindex="0" aria-label="Membres de l'équipe">
+            {members.map((member) => (
+              <li>
+                <TeamCard member={member} />
+              </li>
+            ))}
+          </ul>
+          <p class="team-all">
+            <a class="link-arrow" href="/equipe">
+              Voir toute l'équipe
+            </a>
+          </p>
+        </>
+      ) : (
+        <p class="empty">La présentation de notre équipe arrive prochainement.</p>
+      )
+    }
+  </div>
+</section>
+
+<script>
+  const track = document.querySelector<HTMLElement>('[data-carousel]');
+  const prev = document.querySelector<HTMLButtonElement>('[data-carousel-prev]');
+  const next = document.querySelector<HTMLButtonElement>('[data-carousel-next]');
+
+  if (track && prev && next) {
+    const step = () => (track.firstElementChild as HTMLElement | null)?.offsetWidth ?? track.clientWidth;
+    const gap = () => parseFloat(getComputedStyle(track).columnGap) || 0;
+
+    function update() {
+      prev!.disabled = track!.scrollLeft <= 2;
+      next!.disabled = track!.scrollLeft + track!.clientWidth >= track!.scrollWidth - 2;
+    }
+
+    prev.addEventListener('click', () => track.scrollBy({ left: -(step() + gap()), behavior: 'smooth' }));
+    next.addEventListener('click', () => track.scrollBy({ left: step() + gap(), behavior: 'smooth' }));
+    track.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+  }
+</script>
+
+<style>
+  .carousel {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: clamp(15rem, 72vw, 19rem);
+    gap: clamp(1.25rem, 3vw, 2.25rem);
+    margin: 0;
+    padding: 0 0 1.5rem;
+    list-style: none;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-strong) transparent;
+  }
+
+  .carousel > li {
+    scroll-snap-align: start;
+  }
+
+  .carousel-controls {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .carousel-btn {
+    display: grid;
+    place-items: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 50%;
+    background: none;
+    color: var(--gold);
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: border-color 0.3s var(--ease), background-color 0.3s var(--ease);
+  }
+
+  .carousel-btn:hover:not(:disabled) {
+    border-color: var(--gold);
+    background: rgb(198 161 91 / 0.08);
+  }
+
+  .carousel-btn:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+
+  .team-all {
+    margin-top: 2.5rem;
+  }
+</style>

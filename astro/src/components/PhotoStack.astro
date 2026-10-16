@@ -1,0 +1,122 @@
+---
+// Stacked photo cards: the first photo on top, up to two more peeking out underneath.
+import { srcset, type StrapiImage } from '../lib/strapi';
+
+interface Props {
+  photos: StrapiImage[];
+  alt: string;
+  sizes: string;
+  eager?: boolean;
+  class?: string;
+}
+
+const MAX = 3;
+const { photos, alt, sizes, eager = false, class: className } = Astro.props;
+const shown = photos.slice(0, MAX);
+const extra = photos.length - shown.length;
+---
+
+<div class:list={['stack', className]} data-count={shown.length}>
+  {
+    shown.map((photo, i) => (
+      <img
+        src={photo.formats?.medium?.url ?? photo.url}
+        srcset={srcset(photo)}
+        sizes={sizes}
+        width={photo.width ?? undefined}
+        height={photo.height ?? undefined}
+        alt={i === 0 ? photo.alternativeText || alt : ''}
+        loading={eager && i === 0 ? 'eager' : 'lazy'}
+        decoding="async"
+      />
+    ))
+  }
+  {extra > 0 && <span class="stack-more">+{extra}</span>}
+  {shown.length === 0 && <span class="stack-empty" aria-hidden="true">Orma</span>}
+</div>
+
+<style>
+  .stack {
+    /* Height of the strip each card behind shows below the one in front */
+    --peek: 1.1rem;
+    --peek-hover: 1.5rem;
+    position: relative;
+    display: grid;
+    isolation: isolate;
+    /* Room for two peeking cards is always reserved, so titles line up across cards */
+    padding-bottom: calc(var(--peek-hover) * 2);
+  }
+
+  .stack img,
+  .stack-empty {
+    grid-area: 1 / 1;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    background: var(--bg-raised); /* opaque behind transparent PNGs */
+    transform-origin: 50% 100%;
+    transition: transform 0.6s var(--ease), filter 0.6s var(--ease);
+  }
+
+  .stack img:nth-child(1) {
+    z-index: 3;
+    box-shadow: 0 22px 40px -22px rgb(0 0 0 / 0.9);
+  }
+
+  .stack img:nth-child(2),
+  .stack img:nth-child(3) {
+    outline: 1px solid var(--line-strong);
+    outline-offset: -1px;
+  }
+
+  .stack img:nth-child(2) {
+    z-index: 2;
+    filter: brightness(0.75);
+    transform: translateY(var(--peek)) scale(0.93);
+  }
+
+  .stack img:nth-child(3) {
+    z-index: 1;
+    filter: brightness(0.55);
+    transform: translateY(calc(var(--peek) * 2)) scale(0.86);
+  }
+
+  /* The cards fan out a little when the parent link is hovered */
+  :global(.spread:hover) .stack img:nth-child(1) {
+    transform: translateY(-0.25rem);
+  }
+
+  :global(.spread:hover) .stack img:nth-child(2) {
+    filter: brightness(0.85);
+    transform: translateY(var(--peek-hover)) scale(0.93);
+  }
+
+  :global(.spread:hover) .stack img:nth-child(3) {
+    filter: brightness(0.68);
+    transform: translateY(calc(var(--peek-hover) * 2)) scale(0.86);
+  }
+
+  .stack-more {
+    position: absolute;
+    right: 0.75rem;
+    top: 0.75rem;
+    z-index: 5;
+    padding: 0.3rem 0.65rem;
+    background: rgb(20 21 23 / 0.85);
+    color: var(--gold);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+  }
+
+  .stack-empty {
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--line);
+    background: var(--bg-raised);
+    color: var(--line-strong);
+    font-family: var(--font-display);
+    font-size: 2rem;
+    letter-spacing: 0.3em;
+  }
+</style>

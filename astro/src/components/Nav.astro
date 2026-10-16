@@ -1,0 +1,272 @@
+---
+import Logo from '../assets/orma.svg';
+
+const links = [
+  { href: '/#realisations', id: 'realisations', label: 'Nos réalisations' },
+  { href: '/#equipes', id: 'equipes', label: 'Nos équipes' },
+  { href: '/#contact', id: 'contact', label: 'Nous contacter' },
+];
+---
+
+<header class="nav" data-nav>
+  <a class="nav-logo" href="/#accueil" aria-label="Orma agencement — accueil">
+    <Logo aria-hidden="true" />
+    <span class="nav-brand">Orma</span>
+  </a>
+
+  <button
+    class="nav-toggle"
+    type="button"
+    aria-expanded="false"
+    aria-controls="nav-menu"
+    data-nav-toggle
+  >
+    <span class="nav-toggle-label">Menu</span>
+    <span class="nav-toggle-icon" aria-hidden="true"><span></span><span></span></span>
+  </button>
+
+  <nav id="nav-menu" class="nav-menu" aria-label="Navigation principale">
+    <ul>
+      {
+        links.map((link, i) => (
+          <li>
+            <a href={link.href} data-section={link.id}>
+              <span class="nav-index">0{i + 1}</span>
+              <span class="nav-label">{link.label}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+</header>
+
+<script>
+  const nav = document.querySelector<HTMLElement>('[data-nav]')!;
+  const toggle = nav.querySelector<HTMLButtonElement>('[data-nav-toggle]')!;
+  const menuLinks = nav.querySelectorAll<HTMLAnchorElement>('.nav-menu a');
+
+  function setOpen(open: boolean) {
+    nav.classList.toggle('is-open', open);
+    toggle.setAttribute('aria-expanded', String(open));
+    toggle.querySelector('.nav-toggle-label')!.textContent = open ? 'Fermer' : 'Menu';
+    document.documentElement.style.overflow = open ? 'hidden' : '';
+  }
+
+  toggle.addEventListener('click', () => setOpen(!nav.classList.contains('is-open')));
+  menuLinks.forEach((link) => link.addEventListener('click', () => setOpen(false)));
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && nav.classList.contains('is-open')) {
+      setOpen(false);
+      toggle.focus();
+    }
+  });
+  window.matchMedia('(min-width: 1024px)').addEventListener('change', () => setOpen(false));
+
+  // Highlight the link of the section currently in view (home page only)
+  const sections = [...menuLinks]
+    .map((link) => document.getElementById(link.dataset.section!))
+    .filter((section): section is HTMLElement => section !== null);
+
+  if (sections.length) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          menuLinks.forEach((link) =>
+            link.toggleAttribute('aria-current', link.dataset.section === entry.target.id),
+          );
+        }
+      },
+      { rootMargin: '-45% 0px -50% 0px' },
+    );
+    sections.forEach((section) => observer.observe(section));
+  }
+</script>
+
+<style>
+  .nav {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: var(--nav-height);
+    padding-inline: var(--gutter);
+    background: rgb(20 21 23 / 0.86);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .nav-logo {
+    position: relative;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.85rem;
+    color: var(--gold);
+    text-decoration: none;
+    transition: color 0.3s var(--ease);
+  }
+
+  .nav-logo:hover {
+    color: var(--gold-light);
+  }
+
+  .nav-logo :global(svg) {
+    width: 2.6rem;
+    height: auto;
+  }
+
+  .nav-brand {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    letter-spacing: 0.08em;
+  }
+
+  .nav-toggle {
+    position: relative;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.5rem 0;
+    border: 0;
+    background: none;
+    color: var(--text);
+    font: 600 0.72rem/1 var(--font-body);
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .nav-toggle-icon {
+    display: grid;
+    gap: 6px;
+    width: 1.6rem;
+  }
+
+  .nav-toggle-icon span {
+    height: 1px;
+    background: var(--gold);
+    transition: transform 0.35s var(--ease);
+  }
+
+  .is-open .nav-toggle-icon span:first-child {
+    transform: translateY(3.5px) rotate(45deg);
+  }
+
+  .is-open .nav-toggle-icon span:last-child {
+    transform: translateY(-3.5px) rotate(-45deg);
+  }
+
+  /* Mobile / tablet: full-screen pop-over menu */
+  .nav-menu {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    height: 100dvh;
+    background: var(--bg);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s var(--ease), visibility 0s linear 0.4s;
+  }
+
+  .is-open .nav-menu {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.4s var(--ease);
+  }
+
+  .nav-menu ul {
+    display: grid;
+    gap: 2.2rem;
+    margin: 0;
+    padding: 0 var(--gutter);
+    list-style: none;
+  }
+
+  .nav-menu a {
+    display: flex;
+    align-items: baseline;
+    gap: 1.2rem;
+    text-decoration: none;
+  }
+
+  .nav-index {
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    color: var(--ochre);
+  }
+
+  .nav-label {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 8vw, 3rem);
+    color: var(--gold);
+  }
+
+  /* Desktop: horizontal bar */
+  @media (min-width: 1024px) {
+    .nav-toggle {
+      display: none;
+    }
+
+    .nav-menu {
+      position: static;
+      height: auto;
+      background: none;
+      opacity: 1;
+      visibility: visible;
+      transition: none;
+    }
+
+    .nav-menu ul {
+      display: flex;
+      gap: clamp(2rem, 4vw, 3.5rem);
+      padding: 0;
+    }
+
+    .nav-menu a {
+      gap: 0.6rem;
+    }
+
+    .nav-index {
+      font-size: 0.65rem;
+    }
+
+    .nav-label {
+      position: relative;
+      font-family: var(--font-body);
+      font-size: 0.74rem;
+      font-weight: 600;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      transition: color 0.3s var(--ease);
+    }
+
+    .nav-menu a:hover .nav-label,
+    .nav-menu a[aria-current] .nav-label {
+      color: var(--gold);
+    }
+
+    .nav-label::after {
+      content: '';
+      position: absolute;
+      inset: auto 0 -0.55rem 0;
+      height: 1px;
+      background: var(--gold);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.4s var(--ease);
+    }
+
+    .nav-menu a:hover .nav-label::after,
+    .nav-menu a[aria-current] .nav-label::after {
+      transform: scaleX(1);
+    }
+  }
+</style>

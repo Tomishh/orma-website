@@ -1,0 +1,244 @@
+:root {
+  color-scheme: dark;
+
+  /* Palette — anthracite, gold and ochre (provisional until the brand palette is set) */
+  --bg: #141517;
+  --bg-raised: #1b1c1f;
+  --bg-sunken: #0f1012;
+  --line: rgb(242 238 231 / 0.1);
+  --line-strong: rgb(242 238 231 / 0.22);
+  --gold: #c6a15b;
+  --gold-light: #dcc08a;
+  --ochre: #c9965f;
+  --text: #f2eee7;
+  --text-muted: rgb(242 238 231 / 0.68);
+
+  --font-display: 'Playfair Display Variable', 'Playfair Display', Georgia, serif;
+  --font-body: 'Plus Jakarta Sans Variable', 'Plus Jakarta Sans', system-ui, sans-serif;
+
+  --nav-height: 4.5rem;
+  --gutter: clamp(1rem, 4vw, 4rem);
+  --content-max: 78rem;
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: var(--nav-height);
+  -webkit-text-size-adjust: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+a {
+  color: inherit;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 500;
+  color: var(--gold);
+  line-height: 1.15;
+}
+
+p {
+  margin: 0;
+}
+
+:focus-visible {
+  outline: 1px solid var(--gold);
+  outline-offset: 4px;
+}
+
+::selection {
+  background: var(--gold);
+  color: var(--bg);
+}
+
+.page {
+  min-height: 100vh;
+}
+
+.container {
+  width: 100%;
+  max-width: var(--content-max);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.section {
+  padding-block: clamp(5rem, 12vw, 9rem);
+}
+
+.section + .section {
+  border-top: 1px solid var(--line);
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.9rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ochre);
+}
+
+.eyebrow::before {
+  content: '';
+  width: 2.5rem;
+  height: 1px;
+  background: currentColor;
+}
+
+.section-title {
+  margin-top: 1rem;
+  font-size: clamp(2.2rem, 5vw, 3.6rem);
+}
+
+.section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: clamp(2.5rem, 6vw, 4.5rem);
+}
+
+.section-lead {
+  max-width: 34rem;
+  color: var(--text-muted);
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.95rem 1.9rem;
+  border: 1px solid var(--gold);
+  background: transparent;
+  color: var(--gold);
+  font: 600 0.78rem/1 var(--font-body);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.35s var(--ease), color 0.35s var(--ease);
+}
+
+.button:hover {
+  background: var(--gold);
+  color: var(--bg);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: progress;
+}
+
+.link-arrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ochre);
+  text-decoration: none;
+}
+
+.link-arrow::after {
+  content: '→';
+  transition: transform 0.35s var(--ease);
+}
+
+.link-arrow:hover::after {
+  transform: translateX(0.35rem);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.skip-link {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 100;
+  padding: 0.6rem 1rem;
+  background: var(--gold);
+  color: var(--bg);
+  transform: translateY(-200%);
+}
+
+.skip-link:focus {
+  transform: none;
+}
+
+.empty {
+  padding: 3rem;
+  border: 1px dashed var(--line-strong);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.link-back {
+  display: inline-block;
+  margin-bottom: 2.5rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.link-back:hover {
+  color: var(--gold);
+}

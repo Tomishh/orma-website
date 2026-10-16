@@ -1,0 +1,23 @@
+---
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import Works from '../components/Works.astro';
+import Team from '../components/Team.astro';
+import Contact from '../components/Contact.astro';
+import { getArticles, getHomepage, getTeamMembers } from '../lib/strapi';
+
+const [home, { articles, total }, members] = await Promise.all([
+  getHomepage(),
+  getArticles({ start: 0, limit: 9 }),
+  getTeamMembers(),
+]);
+
+const ogImage = home?.photos?.[0]?.url;
+---
+
+<Base description={home?.introduction?.slice(0, 160) || undefined} image={ogImage}>
+  <Hero home={home} />
+  <Works articles={articles} total={total} />
+  <Team members={members} />
+  <Contact home={home} />
+</Base>

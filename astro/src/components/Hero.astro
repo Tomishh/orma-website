@@ -1,0 +1,138 @@
+---
+import PhotoStack from './PhotoStack.astro';
+import Logo from '../assets/orma.svg';
+import type { Homepage } from '../lib/strapi';
+
+interface Props {
+  home: Homepage | null;
+}
+
+const { home } = Astro.props;
+const shortName = home?.shortName || 'Orma';
+const fullName = home?.fullName || 'Orma agencement';
+const tagline = home?.tagline || 'Ébénisterie & agencement sur mesure';
+const photos = home?.photos ?? [];
+---
+
+<section id="accueil" class="hero">
+  <div class="container hero-inner">
+    <div class="hero-text">
+      <p class="eyebrow">{tagline}</p>
+      <h1 class="hero-title">{shortName}</h1>
+      <p class="hero-fullname">{fullName}</p>
+      {home?.introduction && <p class="hero-intro">{home.introduction}</p>}
+      <div class="hero-actions">
+        <a class="button" href="#realisations">Nos réalisations</a>
+        <a class="link-arrow" href="#contact">Nous contacter</a>
+      </div>
+    </div>
+
+    <div class="hero-visual">
+      {
+        photos.length > 0 ? (
+          <PhotoStack photos={photos} alt={fullName} sizes="(min-width: 1024px) 45vw, 92vw" eager class="hero-stack" />
+        ) : (
+          <div class="hero-emblem">
+            <Logo aria-hidden="true" />
+          </div>
+        )
+      }
+    </div>
+  </div>
+  <a class="hero-scroll" href="#realisations" aria-label="Défiler vers nos réalisations"></a>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: 100svh;
+    padding-block: 7rem 5rem;
+    background:
+      radial-gradient(ellipse at 80% 20%, rgb(198 161 91 / 0.07), transparent 60%),
+      var(--bg);
+  }
+
+  .hero-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(3rem, 6vw, 5rem);
+    align-items: center;
+  }
+
+  .hero-text {
+    display: grid;
+    gap: 1.4rem;
+    justify-items: start;
+  }
+
+  .hero-title {
+    font-size: clamp(4.5rem, 15vw, 10rem);
+    font-weight: 400;
+    line-height: 0.9;
+    letter-spacing: 0.02em;
+  }
+
+  .hero-fullname {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: clamp(1.3rem, 2.6vw, 1.8rem);
+    color: var(--ochre);
+  }
+
+  .hero-intro {
+    max-width: 34rem;
+    color: var(--text-muted);
+    white-space: pre-line;
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1.5rem 2.25rem;
+    margin-top: 1rem;
+  }
+
+  .hero-visual :global(.hero-stack) {
+    --peek: 1.4rem;
+    --peek-hover: 1.4rem;
+  }
+
+  .hero-emblem {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 1;
+    max-width: 26rem;
+    margin-inline: auto;
+    color: var(--gold);
+    opacity: 0.9;
+  }
+
+  .hero-emblem :global(svg) {
+    width: 80%;
+    height: auto;
+  }
+
+  .hero-scroll {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    width: 1px;
+    height: 3.5rem;
+    background: linear-gradient(var(--gold), transparent);
+    animation: drift 2.4s var(--ease) infinite;
+  }
+
+  @keyframes drift {
+    0%, 100% { opacity: 0.3; transform: translateY(0); }
+    50% { opacity: 1; transform: translateY(0.5rem); }
+  }
+
+  @media (min-width: 1024px) {
+    .hero-inner {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    }
+  }
+</style>

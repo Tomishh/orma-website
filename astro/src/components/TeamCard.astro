@@ -1,0 +1,94 @@
+---
+import { srcset, type TeamMember } from '../lib/strapi';
+
+interface Props {
+  member: TeamMember;
+  showBio?: boolean;
+}
+
+const { member, showBio = false } = Astro.props;
+const name = `${member.firstName} ${member.lastName}`;
+---
+
+<article class="member">
+  <div class="member-photo">
+    {
+      member.photo ? (
+        <img
+          src={member.photo.formats?.small?.url ?? member.photo.url}
+          srcset={srcset(member.photo)}
+          sizes="(min-width: 1024px) 300px, 70vw"
+          width={member.photo.width ?? undefined}
+          height={member.photo.height ?? undefined}
+          alt={member.photo.alternativeText || name}
+          loading="lazy"
+          decoding="async"
+        />
+      ) : (
+        <span class="member-initials" aria-hidden="true">
+          {member.firstName[0]}
+          {member.lastName[0]}
+        </span>
+      )
+    }
+  </div>
+  <h3 class="member-name">{name}</h3>
+  {member.role && <p class="member-role">{member.role}</p>}
+  {showBio && member.bio && <p class="member-bio">{member.bio}</p>}
+</article>
+
+<style>
+  .member {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .member-photo {
+    aspect-ratio: 3 / 4;
+    margin-bottom: 1.1rem;
+    overflow: hidden;
+    background: var(--bg-raised);
+  }
+
+  .member-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: grayscale(0.35);
+    transition: filter 0.6s var(--ease), transform 0.8s var(--ease);
+  }
+
+  .member:hover .member-photo img {
+    filter: none;
+    transform: scale(1.03);
+  }
+
+  .member-initials {
+    display: grid;
+    place-items: center;
+    height: 100%;
+    font-family: var(--font-display);
+    font-size: 3rem;
+    color: var(--gold);
+    opacity: 0.6;
+  }
+
+  .member-name {
+    font-size: 1.35rem;
+  }
+
+  .member-role {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ochre);
+  }
+
+  .member-bio {
+    margin-top: 0.75rem;
+    color: var(--text-muted);
+    font-size: 0.93rem;
+    white-space: pre-line;
+  }
+</style>

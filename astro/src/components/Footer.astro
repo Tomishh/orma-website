@@ -1,0 +1,51 @@
+---
+import Logo from '../assets/orma.svg';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="footer">
+  <div class="container footer-inner">
+    <a class="footer-brand" href="/#accueil">
+      <Logo aria-hidden="true" />
+      <span>Orma agencement</span>
+    </a>
+    <p class="footer-copy">© {year} Orma agencement · Ébénisterie & agencement sur mesure</p>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    border-top: 1px solid var(--line);
+    background: var(--bg-sunken);
+  }
+
+  .footer-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding-block: 2.5rem;
+  }
+
+  .footer-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.9rem;
+    color: var(--gold);
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    text-decoration: none;
+  }
+
+  .footer-brand :global(svg) {
+    width: 2.25rem;
+    height: auto;
+  }
+
+  .footer-copy {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+</style>

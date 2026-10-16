@@ -1,0 +1,144 @@
+---
+import WorkCard from './WorkCard.astro';
+import type { Article } from '../lib/strapi';
+
+interface Props {
+  articles: Article[];
+  total: number;
+}
+
+const { articles, total } = Astro.props;
+---
+
+<section id="realisations" class="section works">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">Savoir-faire</p>
+        <h2 class="section-title">Nos réalisations</h2>
+      </div>
+      <p class="section-lead">
+        Chaque pièce est dessinée, façonnée et posée par nos artisans. Découvrez nos derniers projets.
+      </p>
+    </div>
+
+    {
+      articles.length > 0 ? (
+        <>
+          <ul class="works-grid" data-works data-total={total}>
+            {articles.map((article) => (
+              <li>
+                <WorkCard article={article} />
+              </li>
+            ))}
+          </ul>
+          <div class="works-more">
+            <button class="button" type="button" data-works-more hidden>
+              Afficher plus
+            </button>
+            <p class="works-status" role="status" aria-live="polite" data-works-status />
+          </div>
+        </>
+      ) : (
+        <p class="empty">Nos premières réalisations seront bientôt présentées ici.</p>
+      )
+    }
+  </div>
+</section>
+
+<script>
+  const grid = document.querySelector<HTMLUListElement>('[data-works]');
+  const button = document.querySelector<HTMLButtonElement>('[data-works-more]');
+  const status = document.querySelector<HTMLElement>('[data-works-status]');
+
+  if (grid && button && status) {
+    const total = Number(grid.dataset.total);
+    // Cards revealed per click: 3 on mobile, 6 on tablet, 9 on desktop
+    const batchSize = () =>
+      window.matchMedia('(min-width: 1024px)').matches ? 9 : window.matchMedia('(min-width: 640px)').matches ? 6 : 3;
+
+    const items = () => [...grid.children] as HTMLElement[];
+    let visible = Math.min(batchSize(), items().length);
+
+    function render() {
+      items().forEach((item, i) => (item.hidden = i >= visible));
+      button!.hidden = visible >= total;
+    }
+
+    async function loadMore() {
+      const target = Math.min(visible + batchSize(), total);
+      const loaded = items().length;
+      if (loaded < target) {
+        button!.disabled = true;
+        try {
+          const res = await fetch(`/partials/realisations?start=${loaded}&limit=${target - loaded}`);
+          if (!res.ok) throw new Error(String(res.status));
+          grid!.insertAdjacentHTML('beforeend', await res.text());
+        } catch {
+          status!.textContent = 'Impossible de charger plus de réalisations pour le moment.';
+          return;
+        } finally {
+          button!.disabled = false;
+        }
+      }
+      const firstNew = items()[visible];
+      visible = Math.min(target, items().length);
+      render();
+      status!.textContent = `${visible} réalisations affichées sur ${total}.`;
+      firstNew?.querySelector('a')?.focus({ preventScroll: true });
+    }
+
+    grid.classList.add('is-ready');
+    render();
+    button.addEventListener('click', loadMore);
+  }
+</script>
+
+<style>
+  .works-grid {
+    display: grid;
+    gap: clamp(3rem, 5vw, 4.5rem) clamp(1.5rem, 3vw, 2.75rem);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* Until the script runs, only show the first batch for the current screen size */
+  .works-grid:not(.is-ready) > li:nth-child(n + 4) {
+    display: none;
+  }
+
+  @media (min-width: 640px) {
+    .works-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .works-grid:not(.is-ready) > li:nth-child(n + 4) {
+      display: block;
+    }
+    .works-grid:not(.is-ready) > li:nth-child(n + 7) {
+      display: none;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .works-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .works-grid:not(.is-ready) > li:nth-child(n + 7) {
+      display: block;
+    }
+  }
+
+  .works-more {
+    display: grid;
+    justify-items: center;
+    gap: 1rem;
+    margin-top: clamp(3rem, 6vw, 4.5rem);
+  }
+
+  .works-status {
+    min-height: 1.5em;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+</style>

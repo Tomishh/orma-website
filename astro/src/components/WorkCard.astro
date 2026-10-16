@@ -1,0 +1,68 @@
+---
+import PhotoStack from './PhotoStack.astro';
+import { articleDate, articleHref, formatDate, type Article } from '../lib/strapi';
+
+interface Props {
+  article: Article;
+}
+
+const { article } = Astro.props;
+---
+
+<article class="card">
+  <a class="card-link spread" href={articleHref(article)}>
+    <PhotoStack
+      photos={article.photos ?? []}
+      alt={article.title}
+      sizes="(min-width: 1280px) 400px, (min-width: 640px) 45vw, 92vw"
+    />
+    <div class="card-body">
+      <time class="card-date" datetime={articleDate(article)}>{formatDate(articleDate(article))}</time>
+      <h3 class="card-title">{article.title}</h3>
+      {article.description && <p class="card-desc">{article.description}</p>}
+      <span class="link-arrow">Découvrir</span>
+    </div>
+  </a>
+</article>
+
+<style>
+  .card-link {
+    display: grid;
+    gap: 1.6rem;
+    height: 100%;
+    text-decoration: none;
+  }
+
+  .card-body {
+    display: grid;
+    gap: 0.7rem;
+    align-content: start;
+  }
+
+  .card-date {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ochre);
+  }
+
+  .card-title {
+    font-size: 1.55rem;
+    transition: color 0.3s var(--ease);
+  }
+
+  .card-link:hover .card-title {
+    color: var(--gold-light);
+  }
+
+  /* Description preview that fades out after a few lines */
+  .card-desc {
+    max-height: 6.8em;
+    overflow: hidden;
+    color: var(--text-muted);
+    font-size: 0.93rem;
+    white-space: pre-line;
+    mask-image: linear-gradient(to bottom, #000 35%, transparent);
+  }
+</style>

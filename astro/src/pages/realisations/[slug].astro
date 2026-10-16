@@ -1,0 +1,230 @@
+---
+import Base from '../../layouts/Base.astro';
+import { articleDate, formatDate, getArticle, srcset } from '../../lib/strapi';
+
+const article = await getArticle(Astro.params.slug!);
+if (!article) return Astro.rewrite('/404');
+
+const photos = article.photos ?? [];
+const description = article.description?.slice(0, 160);
+---
+
+<Base title={article.title} description={description} image={photos[0]?.url} type="article">
+  <article class="section work">
+    <div class="container">
+      <a class="link-back" href="/#realisations">← Toutes les réalisations</a>
+
+      <header class="work-head">
+        <time class="eyebrow" datetime={articleDate(article)}>{formatDate(articleDate(article))}</time>
+        <h1 class="work-title">{article.title}</h1>
+        {article.description && <p class="work-desc">{article.description}</p>}
+        <button class="link-arrow work-share" type="button" data-share data-title={article.title}>
+          Partager cette réalisation
+        </button>
+        <p class="work-share-status" role="status" aria-live="polite" data-share-status></p>
+      </header>
+
+      {
+        photos.length > 0 && (
+          <ul class="gallery">
+            {photos.map((photo, i) => (
+              <li>
+                <button class="gallery-item" type="button" data-index={i} aria-label={`Agrandir la photo ${i + 1}`}>
+                  <img
+                    src={photo.formats?.medium?.url ?? photo.url}
+                    srcset={srcset(photo)}
+                    sizes="(min-width: 1024px) 40vw, 92vw"
+                    width={photo.width ?? undefined}
+                    height={photo.height ?? undefined}
+                    alt={photo.alternativeText || `${article.title} — photo ${i + 1}`}
+                    loading={i < 2 ? 'eager' : 'lazy'}
+                    decoding="async"
+                  />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+    </div>
+  </article>
+
+  <dialog class="lightbox" data-lightbox aria-label="Photo agrandie">
+    <img alt="" data-lightbox-img />
+    <button class="lightbox-btn lightbox-close" type="button" data-lightbox-close aria-label="Fermer">×</button>
+    <button class="lightbox-btn lightbox-prev" type="button" data-lightbox-prev aria-label="Photo précédente">←</button>
+    <button class="lightbox-btn lightbox-next" type="button" data-lightbox-next aria-label="Photo suivante">→</button>
+  </dialog>
+</Base>
+
+<script>
+  // Share: native share sheet when available, otherwise copy the link.
+  const share = document.querySelector<HTMLButtonElement>('[data-share]');
+  const shareStatus = document.querySelector<HTMLElement>('[data-share-status]');
+  share?.addEventListener('click', async () => {
+    const url = window.location.href;
+    if (navigator.share) {
+      await navigator.share({ title: share.dataset.title, url }).catch(() => {});
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      shareStatus!.textContent = 'Lien copié dans le presse-papiers.';
+    } catch {
+      shareStatus!.textContent = url;
+    }
+  });
+
+  // Lightbox
+  const dialog = document.querySelector<HTMLDialogElement>('[data-lightbox]')!;
+  const image = dialog.querySelector<HTMLImageElement>('[data-lightbox-img]')!;
+  const items = [...document.querySelectorAll<HTMLButtonElement>('.gallery-item')];
+  let current = 0;
+
+  function show(index: number) {
+    current = (index + items.length) % items.length;
+    const source = items[current].querySelector('img')!;
+    image.src = source.currentSrc || source.src;
+    image.srcset = source.srcset;
+    image.sizes = '100vw';
+    image.alt = source.alt;
+  }
+
+  items.forEach((item, i) =>
+    item.addEventListener('click', () => {
+      show(i);
+      dialog.showModal();
+    }),
+  );
+  dialog.querySelector('[data-lightbox-close]')!.addEventListener('click', () => dialog.close());
+  dialog.querySelector('[data-lightbox-prev]')!.addEventListener('click', () => show(current - 1));
+  dialog.querySelector('[data-lightbox-next]')!.addEventListener('click', () => show(current + 1));
+  dialog.addEventListener('click', (event) => {
+    if (event.target === dialog) dialog.close();
+  });
+  dialog.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowLeft') show(current - 1);
+    if (event.key === 'ArrowRight') show(current + 1);
+  });
+  dialog.addEventListener('close', () => items[current]?.focus());
+</script>
+
+<style>
+  .work {
+    padding-top: clamp(7rem, 14vw, 9rem);
+  }
+
+  .work-head {
+    display: grid;
+    gap: 1.25rem;
+    justify-items: start;
+    max-width: 48rem;
+    margin-bottom: clamp(3rem, 7vw, 5rem);
+  }
+
+  .work-title {
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+  }
+
+  .work-desc {
+    color: var(--text-muted);
+    font-size: 1.05rem;
+    white-space: pre-line;
+  }
+
+  .work-share {
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    font-family: var(--font-body);
+  }
+
+  .work-share-status {
+    min-height: 1.5em;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .gallery {
+    columns: 1;
+    column-gap: clamp(1rem, 2vw, 1.75rem);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 768px) {
+    .gallery {
+      columns: 2;
+    }
+  }
+
+  .gallery li {
+    break-inside: avoid;
+    margin-bottom: clamp(1rem, 2vw, 1.75rem);
+  }
+
+  .gallery-item {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: var(--bg-raised);
+    cursor: zoom-in;
+    overflow: hidden;
+  }
+
+  .gallery-item img {
+    width: 100%;
+    transition: transform 0.8s var(--ease);
+  }
+
+  .gallery-item:hover img {
+    transform: scale(1.02);
+  }
+
+  .lightbox {
+    width: 100vw;
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    margin: 0;
+    padding: clamp(1rem, 4vw, 3rem);
+    border: 0;
+    background: rgb(15 16 18 / 0.96);
+  }
+
+  .lightbox[open] {
+    display: grid;
+    place-items: center;
+  }
+
+  .lightbox::backdrop {
+    background: transparent;
+  }
+
+  .lightbox img {
+    max-width: 100%;
+    max-height: calc(100dvh - 6rem);
+    object-fit: contain;
+  }
+
+  .lightbox-btn {
+    position: fixed;
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 50%;
+    background: rgb(20 21 23 / 0.7);
+    color: var(--gold);
+    font-size: 1.2rem;
+    cursor: pointer;
+  }
+
+  .lightbox-close { top: 1rem; right: 1rem; }
+  .lightbox-prev { left: 1rem; top: 50%; translate: 0 -50%; }
+  .lightbox-next { right: 1rem; top: 50%; translate: 0 -50%; }
+</style>

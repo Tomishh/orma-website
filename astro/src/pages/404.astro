@@ -1,0 +1,30 @@
+---
+import Base from '../layouts/Base.astro';
+
+Astro.response.status = 404;
+---
+
+<Base title="Page introuvable">
+  <section class="section not-found">
+    <div class="container">
+      <p class="eyebrow">Erreur 404</p>
+      <h1 class="section-title">Cette page n'existe pas</h1>
+      <p class="section-lead">La page que vous cherchez a peut-être été déplacée ou retirée.</p>
+      <a class="button" href="/">Retour à l'accueil</a>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .not-found {
+    display: grid;
+    align-items: center;
+    min-height: 80vh;
+  }
+
+  .not-found .container {
+    display: grid;
+    gap: 1.5rem;
+    justify-items: start;
+  }
+</style>

@@ -1,0 +1,46 @@
+{
+  "kind": "singleType",
+  "collectionName": "homepages",
+  "info": {
+    "singularName": "homepage",
+    "pluralName": "homepages",
+    "displayName": "Accueil",
+    "description": "Contenu du haut de page et coordonnées de l'entreprise"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "shortName": {
+      "type": "string",
+      "default": "Orma"
+    },
+    "fullName": {
+      "type": "string",
+      "default": "Orma agencement"
+    },
+    "tagline": {
+      "type": "string"
+    },
+    "introduction": {
+      "type": "text"
+    },
+    "photos": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "email": {
+      "type": "email"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "address": {
+      "type": "text"
+    }
+  }
+}
